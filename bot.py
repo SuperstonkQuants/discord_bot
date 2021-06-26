@@ -1,20 +1,26 @@
+import logging
 from itertools import cycle
 from os import listdir
-import os
-from discord.ext import commands, tasks
-from discord import Intents
-from discord.ext.commands import Bot
-import discord
-from dotenv import load_dotenv
-import logging
 
+import discord
+from discord import Intents
+from discord.ext import commands, tasks
+from discord.ext.commands import Bot
+
+import constants
+
+# Declare all intents
 intents = Intents().all()
 
-load_dotenv()
+# Declare discord token, defined in constants.py
+TOKEN = constants.Tokens.DISCORD_TOKEN
 
-TOKEN = os.getenv('DISCORD_TOKEN')
-
-logging.basicConfig(level=logging.DEBUG)
+# Setup logging
+logger = logging.getLogger('discord')
+logger.setLevel(logging.DEBUG)
+handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
+handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+logger.addHandler(handler)
 
 
 def get_prefix(bot, message):
@@ -41,9 +47,9 @@ def get_prefix(bot, message):
     return ['!', '?', '>']
 
 
-# bot = commands.Bot(command_prefix=get_prefix, description='SuperstonkQuantBot Commands', intents=intents)
-bot = Bot(command_prefix=get_prefix, description='SuperstonkQuantBot Commands', intents=intents)
+bot = Bot(command_prefix=get_prefix, description='SuperstonkQuantBot Commands', intents=intents, case_insensitive=True)
 
+# Load all cogs
 if __name__ == '__main__':
     """Loads the cogs from the `./cogs` folder."""
     for cog in listdir('./cogs'):
@@ -84,7 +90,6 @@ async def change_status():
         https://discordpy.readthedocs.io/en/latest/ext/tasks/index.html
     """
     await bot.change_presence(activity=discord.Game(next(statuslist)))
-    # Changes the bot status to `Pythoning`_.
 
 
 # This is the decorator for commands (outside of cogs).
