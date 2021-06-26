@@ -35,10 +35,13 @@ class Tools(commands.Cog):
         Documentation:
             https://discordpy.readthedocs.io/en/latest/api.html#discord.Embed
         """
+
+        file = discord.File("ssq_icon.png")
+
         # embed example
         embed = discord.Embed(
             title='Info',
-            description='An info message using an embed!',
+            description='SuperstonkQuantBot Status and Info',
             colour=discord.Colour.blurple(),  # 0x7289da
             timestamp=datetime.datetime.utcnow(),
         )
@@ -47,8 +50,8 @@ class Tools(commands.Cog):
         embed.add_field(name='Version', value='0.1', inline=True)
         embed.add_field(name='Language', value='Python 3.8', inline=True)
         embed.set_author(name='SuperstonkQuants', url='https://github.com/SuperstonkQuants/discord_bot')
-        embed.set_thumbnail(url="attachment://ssq_icon.png")  # not working right now too lazy to keep looking at it
-        await ctx.send(embed=embed)
+        embed.set_thumbnail(url="attachment://ssq_icon.png")
+        await ctx.send(file=file, embed=embed)
 
 
 def setup(bot):
