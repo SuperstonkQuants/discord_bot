@@ -1,8 +1,8 @@
-from discord.ext import commands
-import discord
-from sys import version_info as sysv
 from os import listdir
-import datetime
+from sys import version_info as sysv
+
+import discord
+from discord.ext import commands
 
 
 class Dev(commands.Cog):
@@ -133,7 +133,7 @@ class Dev(commands.Cog):
     @commands.command(name='member-list', hidden=True)
     @commands.is_owner()
     async def member_list(self, ctx):
-        """This commands reloads the selected cog, as long as that cog is in the `./cogs` folder.
+        """This commands gets a list of all members and sends in a text file.
 
         Note:
             This command can be used only from the bot owner.
