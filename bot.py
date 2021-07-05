@@ -47,7 +47,12 @@ def get_prefix(bot, message):
     return ['!', '?', '>']
 
 
-bot = Bot(command_prefix=get_prefix, description='SuperstonkQuantBot Commands', intents=intents, case_insensitive=True)
+bot = Bot(
+    command_prefix=get_prefix,
+    description='SuperstonkQuantBot Commands',
+    intents=intents,
+    case_insensitive=True
+ )
 
 # Load all cogs
 if __name__ == '__main__':
@@ -72,15 +77,23 @@ async def on_ready():
     change_status.start()
 
 
+@bot.eventAdd
+async def on_command_error(ctx, error):
+    if isinstance(error, discord.ext.commands.errors.CommandNotFound):
+        await ctx.send(f"{ctx.author.mention} That command wasn't found! Sorry :(")
+    if isinstance(error, discord.ext.commands.errors.CommandOnCooldown):
+        await ctx.send(f"{ctx.author.mention} {error}")
+
 # Starts the task `change_status`_.
 statuslist = cycle([
     'Pythoning',
     'Doing stuff...',
     'Getting Kenny Some Mayo',
+    '!help for more info',
 ])
 
 
-@tasks.loop(seconds=16)
+@tasks.loop(seconds=31)
 async def change_status():
     """This is a background task that loops every 16 seconds.
     The coroutine looped with this task will change status over time.
@@ -102,5 +115,16 @@ async def greet(ctx):
     await ctx.send(f'Hello {ctx.message.author.mention}!')
     # The bot send a message on the channel that is being invoked in and mention the invoker.
 
+
+class HelpCommand(commands.MinimalHelpCommand):
+    async def send_pages(self):
+        destination = self.get_destination()
+        e = discord.Embed(color=discord.Color.blurple(), description='')
+        for page in self.paginator.pages:
+            e.description += page
+        await destination.send(embed=e)
+
+
+bot.help_command = HelpCommand()
 
 bot.run(TOKEN)  # Runs the bot with its token. Don't put code below this command.
