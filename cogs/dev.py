@@ -1,8 +1,9 @@
-from discord.ext import commands
-import discord
-from sys import version_info as sysv
+import asyncio
 from os import listdir
-import datetime
+from sys import version_info as sysv
+
+import discord
+from discord.ext import commands
 
 
 class Dev(commands.Cog):
@@ -18,6 +19,8 @@ class Dev(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+
+    dev = True
 
     # This is the decorator for events (inside of cogs).
     @commands.Cog.listener()
@@ -133,7 +136,7 @@ class Dev(commands.Cog):
     @commands.command(name='member-list', hidden=True)
     @commands.is_owner()
     async def member_list(self, ctx):
-        """This commands reloads the selected cog, as long as that cog is in the `./cogs` folder.
+        """This commands gets a list of all members and sends in a text file.
 
         Note:
             This command can be used only from the bot owner.
@@ -145,6 +148,18 @@ class Dev(commands.Cog):
                 print("{},{}".format(member, member.id), file=f,)
 
         await ctx.send(file=discord.File(r'users.txt'))
+
+    @commands.command(name='clear', hidden=True)
+    @commands.is_owner()
+    async def clear(self, ctx):
+        """This commands deletes all messages in the channel it is called from. Dev only!
+
+        Note:
+            This command can be used only from the bot owner.
+            This command is hidden from the help menu.
+            This command sends a message with the file to download.
+        """
+        await ctx.channel.purge()
 
 
 def setup(bot):
