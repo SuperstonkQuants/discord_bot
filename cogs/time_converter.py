@@ -94,7 +94,7 @@ class TimeConverter(commands.Cog):
                     await member.remove_roles(existingTimeRole)
                     response.description = f"Changed timezone to **{label}**"
                 else:
-                    response.description = f"Your timezone officially is **{label}** now"
+                    response.description = f"Welcome to the zone! Your new timezone is **{label}**"
 
                 await member.add_roles(role)        
         except Exception as e:
