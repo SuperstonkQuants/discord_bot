@@ -1,9 +1,22 @@
 class Tokens(object):
-    DISCORD_TOKEN="insert your token here"
+    DISCORD_TOKEN = "token here"
 
 
 class MessageIDs(object):
-    RULES_MSGID=854535314436521984
+    RULES_MSGID = 854535314436521984
+
+
+class ChannelIDs(object):
+    XANASTROLOGY = 853107900029075486
+    VEGAS = 861767811604676628
+
+
+class FilePaths(object):
+    ROOT_PATH = ""
+    COGS_PATH = ""
+    STORAGE_PATH = ""
+    IMAGES_PATH = ""
+
 
 class Timezones(object):
     identifier = {
@@ -15,12 +28,8 @@ class Timezones(object):
         "AEST": "Australian Eastern Standard Time",
         "AWST": "Australian Western Standard Time",
         "AKST": "Alaska Standard Time",
-        "CST": "China Standard Time",
+        "BJT": "China Standard Time",
         "KST": "Korea Standard Time",
         "GMT": "Greenwich Mean Time",
-        "Q":"Quebec Time Zone"
+        "Q": "Quebec Time Zone"
     }
-
-
-
-# class Channels(object):

@@ -1,6 +1,7 @@
 import json
 import random
-
+import os
+import constants
 import discord
 from discord.ext import commands
 
@@ -13,16 +14,10 @@ mainshop = [
 
 
 class Currency(commands.Cog):
-    """This is a cog that has commands for currency
-    Note:
-    All cogs inherits from `commands.Cog`_.
-    All cogs are classes, so they need self as first argument in their methods.
-    All cogs use different decorators for commands and events (see example in dev.py).
-    All cogs needs a setup function (see below).
-
-    Documentation:
-        https://discordpy.readthedocs.io/en/latest/ext/commands/cogs.html
+    """This is a category of commands for currency.
     """
+
+    channel_id = constants.ChannelIDs.VEGAS
 
     def __init__(self, bot):
         self.bot = bot
@@ -40,8 +35,8 @@ class Currency(commands.Cog):
 
         wallet_amt = users[str(user.id)]["wallet"]
 
-        em = discord.Embed(title=f'{ctx.author.name} Balance', color=discord.Color.red())
-        em.add_field(name="Wallet Balance", value=wallet_amt)
+        em = discord.Embed(title=f"{user.name}'s Balance", color=discord.Color.red())
+        em.add_field(name="\u200b", value=f"${wallet_amt}")
         await ctx.send(embed=em)
 
     @commands.command(
@@ -49,7 +44,7 @@ class Currency(commands.Cog):
         help="Beg to get some money. Can only be used once per day",
         brief="Beg for $$"
     )
-    @commands.cooldown(1, 60*60*24, commands.BucketType.user)
+    @commands.cooldown(1, 3600, commands.BucketType.user)
     async def beg(self, ctx):
 
         await self.open_account(ctx.author)
@@ -59,11 +54,11 @@ class Currency(commands.Cog):
 
         earnings = random.randrange(101)
 
-        await ctx.send(f'{ctx.author.mention} Got {earnings} coins!!')
+        await ctx.send(f'{ctx.author.mention} Got ${earnings}!!')
 
         users[str(user.id)]["wallet"] += earnings
 
-        with open("storage/bank.json", 'w') as f:
+        with open(f"{constants.FilePaths.STORAGE_PATH}{os.sep}bank.json", 'w') as f:
             json.dump(users, f, indent=4)
 
     @commands.command(
@@ -79,7 +74,7 @@ class Currency(commands.Cog):
         await self.open_account(ctx.author)
         await self.open_account(member)
         if amount is None:
-            await ctx.send("Please enter the amount")
+            await ctx.send(f"{ctx.author.mention} Please enter the amount")
             return
 
         bal = await self.update_bank(ctx.author)
@@ -89,10 +84,10 @@ class Currency(commands.Cog):
         amount = int(amount)
 
         if amount > bal:
-            await ctx.send('You do not have sufficient balance')
+            await ctx.send(f'{ctx.author.mention} You do not have sufficient balance')
             return
         if amount < 0:
-            await ctx.send('Amount must be positive!')
+            await ctx.send(f'{ctx.author.mention} Amount must be positive!')
             return
 
         await self.update_bank(ctx.author, -1 * amount)
@@ -107,10 +102,11 @@ class Currency(commands.Cog):
              "Example: !$slots 69",
         brief="Gamble slots"
     )
+    @commands.cooldown(1, 30, commands.BucketType.user)
     async def slots(self, ctx, amount=None):
         await self.open_account(ctx.author)
         if amount is None:
-            await ctx.send("Please enter the amount")
+            await ctx.send(f"{ctx.author.mention} Please enter the amount")
             return
 
         bal = await self.update_bank(ctx.author)
@@ -118,10 +114,10 @@ class Currency(commands.Cog):
         amount = int(amount)
 
         if amount > bal:
-            await ctx.send('You do not have sufficient balance')
+            await ctx.send(f'{ctx.author.mention} You do not have sufficient balance')
             return
         if amount < 0:
-            await ctx.send('Amount must be positive!')
+            await ctx.send(f'{ctx.author.mention} Amount must be positive!')
             return
 
         slots = ['bus', 'train', 'horse', 'tiger', 'monkey', 'cow']
@@ -132,13 +128,13 @@ class Currency(commands.Cog):
         slot_output = '| :{}: | :{}: | :{}: |\n'.format(slot1, slot2, slot3)
 
         ok = discord.Embed(title="Slots Machine", color=discord.Color(0xFFEC))
-        ok.add_field(name="{}\nWon".format(slot_output), value=f'You won {2 * amount} coins')
+        ok.add_field(name=f"{format(slot_output)}\nWon", value=f'{ctx.author.mention} You won ${2 * amount}')
 
         won = discord.Embed(title="Slots Machine", color=discord.Color(0xFFEC))
-        won.add_field(name="{}\nWon".format(slot_output), value=f'You won {4 * amount} coins')
+        won.add_field(name=f"{format(slot_output)}\nWon", value=f'{ctx.author.mention} You won ${4 * amount}')
 
         lost = discord.Embed(title="Slots Machine", color=discord.Color(0xFFEC))
-        lost.add_field(name="{}\nLost".format(slot_output), value=f'You lost {1 * amount} coins')
+        lost.add_field(name=f"{format(slot_output)}\nLost", value=f'{ctx.author.mention} You lost ${1 * amount}')
 
         if slot1 == slot2 == slot3:
             await self.update_bank(ctx.author, 4 * amount)
@@ -154,6 +150,23 @@ class Currency(commands.Cog):
             await self.update_bank(ctx.author, -1 * amount)
             await ctx.send(embed=lost)
             return
+
+    @commands.command(
+        name="$yolo",
+        help="YOLO your whole bank account into slots!",
+        brief="YOLO"
+    )
+    async def yolo(self, ctx):
+        await self.open_account(ctx.author)
+        bal = await self.update_bank(ctx.author)
+
+        bal = int(bal)
+
+        if bal == 0:
+            await ctx.send(f'{ctx.author.mention} You are broke!')
+            return
+
+        await self.slots(ctx, bal)
 
     @commands.command(
         name="$shop",
@@ -175,10 +188,9 @@ class Currency(commands.Cog):
         name="$buy",
         help="Buy an item from the shop.\n\n"
              "Params:\n"
-             "> amount: How many of the item you wish to buy.(Not required if you only want 1)\n"
+             "> amount: How many of the item you wish to buy.\n"
              "> item: The you wish to buy.\n\n"
              "Examples: \n"
-             "> !$buy Lambo\n"
              "> !$buy 2 lambo",
         brief="Buy item"
     )
@@ -189,20 +201,20 @@ class Currency(commands.Cog):
 
         if not res[0]:
             if res[1] == 1:
-                await ctx.send("Something went wrong and a price could not be found.")
+                await ctx.send(f"{ctx.author.mention} Something went wrong and a price could not be found.")
                 return
             if res[1] == 2:
-                await ctx.send("That Object isn't there!")
+                await ctx.send(f"{ctx.author.mention} That Object isn't there!")
                 return
             if res[1] == 3:
-                await ctx.send(f"You don't have enough money in your wallet to buy {amount} {item}")
+                await ctx.send(f"{ctx.author.mention} You don't have enough money to buy {amount} {item}")
                 return
 
-        await ctx.send(f"You just bought {amount} {item}")
+        await ctx.send(f"{ctx.author.mention} You just bought {amount} {item}")
 
     @commands.command(
         name="$inv",
-        help="Display all items in you own",
+        help="Display all items you own",
         brief="Show inventory"
     )
     async def inv(self, ctx):
@@ -215,7 +227,7 @@ class Currency(commands.Cog):
         except:
             inv = []
 
-        em = discord.Embed(title="Inventory")
+        em = discord.Embed(title=f"{ctx.author.name}'s Inventory")
         for item in inv:
             name = item["item"]
             amount = item["amount"]
@@ -269,7 +281,7 @@ class Currency(commands.Cog):
             obj = {"item": item_name, "amount": amount}
             users[str(user.id)]["inventory"] = [obj]
 
-        with open("storage/bank.json", "w") as f:
+        with open(f"{constants.FilePaths.STORAGE_PATH}{os.sep}bank.json", "w") as f:
             json.dump(users, f, indent=4)
 
         await self.update_bank(user, cost * -1)
@@ -280,10 +292,9 @@ class Currency(commands.Cog):
         name="$sell",
         help="Sell an item from your inventory for money.\n\n"
              "Params:\n"
-             "> amount: The amount of items you wish to sell. (Not required if only selling 1)\n"
+             "> amount: The amount of items you wish to sell.\n"
              "> item: The item you wish to sell.\n\n"
              "Examples: \n"
-             "> !$sell Lambo\n"
              "> !$sell 2 lambo",
         brief="Sell item"
     )
@@ -294,16 +305,16 @@ class Currency(commands.Cog):
 
         if not res[0]:
             if res[1] == 1:
-                await ctx.send("That Object isn't there!")
+                await ctx.send(f"{ctx.author.mention} That Object isn't there!")
                 return
             if res[1] == 2:
-                await ctx.send(f"You don't have {amount} {item} in your bag.")
+                await ctx.send(f"{ctx.author.mention} You don't have {amount} {item} in your inventory.")
                 return
             if res[1] == 3:
-                await ctx.send(f"You don't have {item} in your bag.")
+                await ctx.send(f"{ctx.author.mention} You don't have {item} in your inventory.")
                 return
 
-        await ctx.send(f"You just sold {amount} {item}.")
+        await ctx.send(f"{ctx.author.mention} You just sold {amount} {item}.")
 
     async def sell_this(self, user, item_name, amount, price=None):
         item_name = item_name.lower()
@@ -344,7 +355,7 @@ class Currency(commands.Cog):
         except discord.ext.commands.CommandError:
             return [False, 3]
 
-        with open("storage/bank.json", "w") as f:
+        with open(f"{constants.FilePaths.STORAGE_PATH}{os.sep}bank.json", "w") as f:
             json.dump(users, f, indent=4)
 
         await self.update_bank(user, cost)
@@ -356,7 +367,7 @@ class Currency(commands.Cog):
         help="Display the leaderboard of most wealthy users",
         brief="Show money leaderboard"
     )
-    async def leaderboard(self, ctx, x=1):
+    async def leaderboard(self, ctx, x=10):
         users = await self.get_bank_data()
         leader_board = {}
         total = []
@@ -369,7 +380,7 @@ class Currency(commands.Cog):
         total = sorted(total, reverse=True)
 
         em = discord.Embed(title=f"Top {x} Richest People",
-                           description="This is decided on the basis of raw money in the bank and wallet",
+                           description="This is decided on the basis of money in the bank",
                            color=discord.Color(0xfa43ee))
         index = 1
         for amt in total:
@@ -377,7 +388,7 @@ class Currency(commands.Cog):
 
             member = self.bot.get_user(id_)
             name = member.name
-            em.add_field(name=f"{index}. {name}", value=f"{amt}", inline=False)
+            em.add_field(name=f"{index}. {member.mention}", value=f"{amt}", inline=False)
             if index == x:
                 break
             else:
@@ -395,14 +406,14 @@ class Currency(commands.Cog):
             users[str(user.id)] = {}
             users[str(user.id)]["wallet"] = 0
 
-        with open('storage/bank.json', 'w') as f:
+        with open(f"{constants.FilePaths.STORAGE_PATH}{os.sep}bank.json", 'w') as f:
             json.dump(users, f, indent=4)
 
         return True
 
     @staticmethod
     async def get_bank_data():
-        with open('storage/bank.json', 'r') as f:
+        with open(f'{constants.FilePaths.STORAGE_PATH}{os.sep}bank.json', 'r') as f:
             users = json.load(f)
 
         return users
@@ -414,7 +425,7 @@ class Currency(commands.Cog):
 
         users[str(user.id)]['wallet'] += change
 
-        with open('storage/bank.json', 'w') as f:
+        with open(f'{constants.FilePaths.STORAGE_PATH}{os.sep}bank.json', 'w') as f:
             json.dump(users, f, indent=4)
         bal = users[str(user.id)]['wallet']
         return bal
