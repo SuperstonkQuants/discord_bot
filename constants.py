@@ -19,17 +19,57 @@ class FilePaths(object):
 
 
 class Timezones(object):
+    """ identifiers are often shorter and easier to use for members. hence abbrevations are stores seperately
+    
+    """
+
     identifier = {
-        "EST": "Eastern Standard Time",
-        "PST": "Pacific Standard Time",
-        "CST":	"Central Standard Time",
-        "CET": "Central European Time",
-        "CAT": "Central Africa Time",
-        "AEST": "Australian Eastern Standard Time",
-        "AWST": "Australian Western Standard Time",
-        "AKST": "Alaska Standard Time",
-        "BJT": "China Standard Time",
-        "KST": "Korea Standard Time",
-        "GMT": "Greenwich Mean Time",
-        "Q": "Quebec Time Zone"
+        "EST": (
+            "Eastern Standard Time",
+            "EST"
+        ),
+        "PST": (
+            "Pacific Standard Time",
+            "PST8PDT"
+        ),
+        "CST":	(
+            "Central Standard Time",
+            "CST6CDT"
+        ),
+        "CET": (
+            "Central European Time",
+            "CET"
+        ),
+        "CAT": (
+            "Central Africa Time",
+            "Africa/Maputo"
+        ),
+        "AEST": (
+            "Australian Eastern Standard Time",
+            "EST"
+        ),
+        "AWST": (
+            "Australian Western Standard Time",
+            "Australia/West"
+        ),
+        "AKST": (
+            "Alaska Standard Time",
+            "US/Alaska"
+        ),
+        "HKT": (
+            "Hong Kong Time",
+            "Asia/Hong_Kong"
+        ),
+        "KST": (
+            "Korea Standard Time",
+            "Asia/Seoul"
+        ),
+        "GMT": (
+            "Greenwich Mean Time",
+            "GMT"
+        ),
+        "EDT": (
+            "Eastern Daylight Time",
+            "Canada/Eastern"
+        )
     }
