@@ -1,8 +1,9 @@
-import logging
+import logging.config
+import os
+import discord
 from itertools import cycle
 from os import listdir
-
-import discord
+from util.messages import WarnMessage
 from discord import Intents
 from discord.ext import commands, tasks
 from discord.ext.commands import Bot
@@ -15,12 +16,18 @@ intents = Intents().all()
 # Declare discord token, defined in constants.py
 TOKEN = constants.Tokens.DISCORD_TOKEN
 
-# Setup logging
-logger = logging.getLogger('discord')
-logger.setLevel(logging.DEBUG)
-handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
-handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
-logger.addHandler(handler)
+# Get and set constant file paths
+constants.FilePaths.ROOT_PATH = os.path.abspath(os.getcwd())
+constants.FilePaths.COGS_PATH = f"{constants.FilePaths.ROOT_PATH}{os.sep}cogs"
+constants.FilePaths.STORAGE_PATH = f"{constants.FilePaths.ROOT_PATH}{os.sep}storage"
+constants.FilePaths.IMAGES_PATH = f"{constants.FilePaths.ROOT_PATH}{os.sep}images"
+
+# Setup logging to console and file
+# Documentation: https://docs.python.org/3/howto/logging.html#logging-basic-tutorial
+logging.config.fileConfig(f"{constants.FilePaths.ROOT_PATH}{os.sep}config{os.sep}logging.conf")
+log = logging.getLogger('discord')
+
+log.info("Starting discordbot ...")
 
 
 def get_prefix(bot, message):
@@ -57,7 +64,7 @@ bot = Bot(
 # Load all cogs
 if __name__ == '__main__':
     """Loads the cogs from the `./cogs` folder."""
-    for cog in listdir('./cogs'):
+    for cog in listdir(f"{constants.FilePaths.COGS_PATH}"):
         if cog.endswith('.py'):
             bot.load_extension(f'cogs.{cog[:-3]}')
 
@@ -77,12 +84,16 @@ async def on_ready():
     change_status.start()
 
 
-@bot.eventAdd
+@bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, discord.ext.commands.errors.CommandNotFound):
         await ctx.send(f"{ctx.author.mention} That command wasn't found! Sorry :(")
     if isinstance(error, discord.ext.commands.errors.CommandOnCooldown):
         await ctx.send(f"{ctx.author.mention} {error}")
+    if isinstance(error, commands.MissingRequiredArgument):
+        embed = WarnMessage(f"You are missing something :disappointed_relieved:", f"Use `!{ctx.command} {' '.join(f'[{p}]' for p in ctx.command.clean_params)}`").new()
+        embed.set_footer(text=f"For more information call !help {ctx.command}")
+        await ctx.message.reply(embed=embed)
 
 # Starts the task `change_status`_.
 statuslist = cycle([
@@ -95,7 +106,7 @@ statuslist = cycle([
 
 @tasks.loop(seconds=31)
 async def change_status():
-    """This is a background task that loops every 16 seconds.
+    """This is a background task that loops every 31 seconds.
     The coroutine looped with this task will change status over time.
     The statuses used are in the cycle list called `statuslist`_.
 
@@ -123,7 +134,6 @@ class HelpCommand(commands.MinimalHelpCommand):
         for page in self.paginator.pages:
             e.description += page
         await destination.send(embed=e)
-
 
 bot.help_command = HelpCommand()
 

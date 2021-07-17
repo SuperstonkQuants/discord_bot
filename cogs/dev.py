@@ -1,7 +1,6 @@
-import asyncio
+import util 
 from os import listdir
 from sys import version_info as sysv
-
 import discord
 from discord.ext import commands
 
@@ -46,10 +45,11 @@ class Dev(commands.Cog):
             for cog in listdir('./cogs'):
                 if cog.endswith('.py'):
                     self.bot.reload_extension(f'cogs.{cog[:-3]}')
+
         except Exception as exc:
             await message.edit(content=f'An error has occurred: {exc}', delete_after=20)
         else:
-            await message.edit(content='All cogs have been reloaded.', delete_after=20)
+            await message.edit(content='All cogs and modules have been reloaded.', delete_after=20)
 
     def check_cog(self, cog):
         """Returns the name of the cog in the correct format.
@@ -78,6 +78,7 @@ class Dev(commands.Cog):
             This command can be used only from the bot owner.
             This command is hidden from the help menu.
             This command deletes its messages after 20 seconds.
+            :param cog:
             :param ctx:
         """
         message = await ctx.send('Loading...')
@@ -100,6 +101,7 @@ class Dev(commands.Cog):
             This command can be used only from the bot owner.
             This command is hidden from the help menu.
             This command deletes its messages after 20 seconds.
+            :param cog:
             :param ctx:
         """
         message = await ctx.send('Unloading...')
@@ -122,6 +124,7 @@ class Dev(commands.Cog):
             This command can be used only from the bot owner.
             This command is hidden from the help menu.
             This command deletes its messages after 20 seconds.
+            :param cog:
             :param ctx:
         """
         message = await ctx.send('Reloading...')
@@ -152,14 +155,16 @@ class Dev(commands.Cog):
     @commands.command(name='clear', hidden=True)
     @commands.is_owner()
     async def clear(self, ctx):
-        """This commands deletes all messages in the channel it is called from. Dev only!
+        """This commands deletes 100 message at a time in the channel it is called from. Dev only!
 
         Note:
             This command can be used only from the bot owner.
             This command is hidden from the help menu.
-            This command sends a message with the file to download.
+            This command can be used only if dev=True
         """
-        await ctx.channel.purge()
+
+        if self.dev:
+            await ctx.channel.purge()
 
 
 def setup(bot):
