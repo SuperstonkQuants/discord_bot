@@ -1,7 +1,6 @@
-import asyncio
+import util 
 from os import listdir
 from sys import version_info as sysv
-
 import discord
 from discord.ext import commands
 
@@ -46,10 +45,11 @@ class Dev(commands.Cog):
             for cog in listdir('./cogs'):
                 if cog.endswith('.py'):
                     self.bot.reload_extension(f'cogs.{cog[:-3]}')
+
         except Exception as exc:
             await message.edit(content=f'An error has occurred: {exc}', delete_after=20)
         else:
-            await message.edit(content='All cogs have been reloaded.', delete_after=20)
+            await message.edit(content='All cogs and modules have been reloaded.', delete_after=20)
 
     def check_cog(self, cog):
         """Returns the name of the cog in the correct format.

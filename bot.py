@@ -3,6 +3,7 @@ import os
 import discord
 from itertools import cycle
 from os import listdir
+from util.messages import WarnMessage
 from discord import Intents
 from discord.ext import commands, tasks
 from discord.ext.commands import Bot
@@ -89,8 +90,10 @@ async def on_command_error(ctx, error):
         await ctx.send(f"{ctx.author.mention} That command wasn't found! Sorry :(")
     if isinstance(error, discord.ext.commands.errors.CommandOnCooldown):
         await ctx.send(f"{ctx.author.mention} {error}")
-    if isinstance(error, discord.ext.commands.errors.MissingRequiredArgument):
-        await ctx.send(f"{ctx.author.mention} {error}")
+    if isinstance(error, commands.MissingRequiredArgument):
+        embed = WarnMessage(f"You are missing something :disappointed_relieved:", f"Use `!{ctx.command} {' '.join(f'[{p}]' for p in ctx.command.clean_params)}`").new()
+        embed.set_footer(text=f"For more information call !help {ctx.command}")
+        await ctx.message.reply(embed=embed)
 
 # Starts the task `change_status`_.
 statuslist = cycle([
@@ -131,7 +134,6 @@ class HelpCommand(commands.MinimalHelpCommand):
         for page in self.paginator.pages:
             e.description += page
         await destination.send(embed=e)
-
 
 bot.help_command = HelpCommand()
 
